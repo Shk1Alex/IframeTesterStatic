@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iframe Test Env</title>
+<style>
+  * { box-sizing: border-box; font-family: Arial, sans-serif; }
+  body { margin: 30px; background: #f5f5f5; color: #222; }
+
+  .controls { display: flex; gap: 10px; margin-bottom: 10px; }
+  .controls input { flex: 1; padding: 10px; font-size: 14px; }
+  button { padding: 10px 18px; cursor: pointer; font-size: 14px; }
+  .hint { font-size: 12px; color: #666; margin: 0; line-height: 1.5; }
+  .hint code { background: #e9e9e9; padding: 1px 4px; border-radius: 3px; }
+
+  #overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.65);
+    display: none; justify-content: center; align-items: center; z-index: 9999;
+  }
+  #modal {
+    width: 90vw; height: 90vh; background: white; border-radius: 8px;
+    overflow: hidden; box-shadow: 0 0 25px rgba(0,0,0,.3);
+    display: flex; flex-direction: column;
+  }
+
+  #bar {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    border-bottom: 1px solid #ddd; background: #fafafa; font-size: 13px;
+  }
+  #currentUrl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #555; }
+  #closeBtn { border: none; background: #d32f2f; color: white; border-radius: 4px; padding: 6px 12px; font-size: 13px; }
+
+  iframe { flex: 1; width: 100%; border: none; }
+</style>
+</head>
+<body>
+
+<h2>Iframe tester</h2>
+
+<div class="controls">
+  <input id="url" type="text" placeholder="https://example.com">
+  <button id="openBtn">Открыть</button>
+</div>
+<p class="hint">
+  Страница открывается во фрейме с origin <code id="origin"></code>.<br>
+  Если фрейм пустой или с ошибкой, откройте DevTools → Console: при блокировке заголовками будет
+  сообщение <code> … X-Frame-Options</code> или <code>… frame-ancestors</code>.
+</p>
+
+<div id="overlay">
+  <div id="modal">
+    <div id="bar">
+      <span id="currentUrl"></span>
+      <button id="closeBtn">✕ Закрыть</button>
+    </div>
+
+    <iframe id="frame" allow="payment *; publickey-credentials-get *"></iframe>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const overlay = $('overlay'), frame = $('frame');
+
+$('origin').textContent = location.origin;
+
+function openIframe() {
+  let url = $('url').value.trim();
+  if (!url) return;
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  frame.src = url;
+  $('currentUrl').textContent = url;
+  $('currentUrl').title = url;
+  overlay.style.display = 'flex';
+}
+
+function closeIframe() {
+  overlay.style.display = 'none';
+  frame.src = 'about:blank'; 
+}
+
+$('openBtn').onclick = openIframe;
+$('url').addEventListener('keydown', e => { if (e.key === 'Enter') openIframe(); });
+$('closeBtn').onclick = closeIframe;
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && overlay.style.display === 'flex') closeIframe();
+});
+</script>
+</body>
+</html>
